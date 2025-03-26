@@ -95,6 +95,32 @@ const Auth = () => {
         const { data: userData } = await supabase.auth.getUser();
         
         if (userData?.user) {
+          // First, generate a random ID for the admin_login entry
+          const adminId = Math.floor(Math.random() * 1000000) + 1; // Generate a random ID between 1 and 1000000
+          
+          // Create the admin_login entry with the generated ID
+          const { error: adminLoginError } = await supabase
+            .from('admin_login')
+            .insert({
+              id: adminId, // Provide a value for the id field
+              email: values.email,
+              resto_name: values.restaurantName || '',
+              state: values.state || '',
+              district: values.district || '',
+              city_town: values.city || '',
+            });
+            
+          if (adminLoginError) {
+            toast({
+              title: "Error creating admin account",
+              description: adminLoginError.message,
+              variant: "destructive",
+            });
+            console.error("Admin login error:", adminLoginError);
+            return;
+          }
+          
+          // Create the restaurant entry
           const { error: restaurantError } = await supabase
             .from('restaurants')
             .insert({
@@ -111,6 +137,7 @@ const Auth = () => {
               description: restaurantError.message,
               variant: "destructive",
             });
+            console.error("Restaurant error:", restaurantError);
           }
         }
       }
