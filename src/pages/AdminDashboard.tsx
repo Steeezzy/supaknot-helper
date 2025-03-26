@@ -71,11 +71,20 @@ const AdminDashboard = () => {
     if (!restaurant) return;
     
     try {
+      // Ensure required fields are present and have the correct types
+      if (!newMeal.name || typeof newMeal.price !== 'number') {
+        throw new Error('Meal name and price are required');
+      }
+      
       const { data, error } = await supabase
         .from('meals')
         .insert({
-          ...newMeal,
+          name: newMeal.name,
+          price: newMeal.price,
           restaurant_id: restaurant.id,
+          description: newMeal.description || null,
+          image_url: newMeal.image_url || null,
+          is_available: newMeal.is_available !== undefined ? newMeal.is_available : true
         })
         .select()
         .single();
