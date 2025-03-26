@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_login: {
+        Row: {
+          city_town: string | null
+          created_at: string
+          district: string | null
+          email: string
+          id: number
+          password: string | null
+          resto_name: string | null
+          state: string | null
+        }
+        Insert: {
+          city_town?: string | null
+          created_at?: string
+          district?: string | null
+          email: string
+          id: number
+          password?: string | null
+          resto_name?: string | null
+          state?: string | null
+        }
+        Update: {
+          city_town?: string | null
+          created_at?: string
+          district?: string | null
+          email?: string
+          id?: number
+          password?: string | null
+          resto_name?: string | null
+          state?: string | null
+        }
+        Relationships: []
+      }
       meals: {
         Row: {
           created_at: string
@@ -46,92 +79,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "meals_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      order_items: {
-        Row: {
-          created_at: string
-          id: string
-          meal_id: string
-          order_id: string
-          price: number
-          quantity: number
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          meal_id: string
-          order_id: string
-          price: number
-          quantity: number
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          meal_id?: string
-          order_id?: string
-          price?: number
-          quantity?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "order_items_meal_id_fkey"
-            columns: ["meal_id"]
-            isOneToOne: false
-            referencedRelation: "meals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "order_items_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      orders: {
-        Row: {
-          contact_number: string | null
-          created_at: string
-          delivery_address: string | null
-          id: string
-          restaurant_id: string
-          status: string
-          total_amount: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          contact_number?: string | null
-          created_at?: string
-          delivery_address?: string | null
-          id?: string
-          restaurant_id: string
-          status?: string
-          total_amount: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          contact_number?: string | null
-          created_at?: string
-          delivery_address?: string | null
-          id?: string
-          restaurant_id?: string
-          status?: string
-          total_amount?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "orders_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
             referencedRelation: "restaurants"

@@ -1,5 +1,5 @@
 
-export type UserRole = 'admin' | 'user';
+export type UserRole = 'admin' | 'user' | 'manager';
 
 export interface Restaurant {
   id: string;

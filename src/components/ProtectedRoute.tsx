@@ -5,7 +5,7 @@ import { UserRole } from "@/types/database.types";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: UserRole;
+  requiredRole?: UserRole | UserRole[];
 }
 
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
@@ -21,9 +21,20 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  if (requiredRole && userProfile?.role !== requiredRole) {
-    // User doesn't have the required role, redirect to home
-    return <Navigate to="/" replace />;
+  if (requiredRole) {
+    if (Array.isArray(requiredRole)) {
+      // Check if user has any of the required roles
+      if (!requiredRole.includes(userProfile?.role as UserRole)) {
+        // User doesn't have any of the required roles, redirect to home
+        return <Navigate to="/" replace />;
+      }
+    } else {
+      // Single role requirement
+      if (userProfile?.role !== requiredRole) {
+        // User doesn't have the required role, redirect to home
+        return <Navigate to="/" replace />;
+      }
+    }
   }
 
   // User is authenticated and has the required role, render the children
