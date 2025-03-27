@@ -43,14 +43,43 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
     try {
       setIsLoading(true);
       
-      // Check if user exists in user_profiles
-      const { data: userExists, error: userCheckError } = await supabase
-        .from('user_profiles')
-        .select('user_id')
-        .eq('user_id', values.email)
-        .maybeSingle();
+      // First check if this is an admin by looking in admin_login table
+      const { data: adminData, error: adminError } = await supabase
+        .from('admin_login')
+        .select('*')
+        .eq('email', values.email)
+        .single();
       
-      // Attempt to sign in
+      if (adminError && adminError.code !== 'PGRST116') { // PGRST116 is "No rows returned" error
+        console.error('Admin check error:', adminError);
+        // Continue to normal login flow even if admin check fails
+      }
+      
+      if (adminData) {
+        console.log('Admin account found:', adminData);
+        // This is an admin account
+      } else {
+        console.log('No admin account found for:', values.email);
+        // Not an admin account, checking if user exists in user_profiles
+        const { data: userProfileData, error: userProfileError } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('user_id', values.email)
+          .single();
+          
+        if (userProfileError && userProfileError.code === 'PGRST116') {
+          // No user profile found
+          toast({
+            title: "Account not found",
+            description: "No account exists with this email. Please check your credentials or sign up.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+      }
+      
+      // Attempt to sign in with Supabase Auth
       await signIn(values.email, values.password);
       
       if (onSuccess) onSuccess();
