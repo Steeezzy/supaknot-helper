@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,17 +11,22 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Meal } from '@/types/database.types';
+import { Loader2 } from 'lucide-react';
 
 const mealSchema = z.object({
   name: z.string().min(1, { message: "Meal name is required" }),
   description: z.string().optional(),
-  price: z.string().min(1, { message: "Price is required" }),
-  image_url: z.string().optional(),
+  price: z.string().min(1, { message: "Price is required" })
+    .refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
+      message: "Price must be a valid positive number",
+    }),
+  image_url: z.string().url({ message: "Please enter a valid URL" }).optional().or(z.literal('')),
   is_available: z.boolean().default(true),
 });
 
@@ -32,6 +37,8 @@ interface AddMealFormProps {
 }
 
 const AddMealForm = ({ onAddMeal }: AddMealFormProps) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const form = useForm<MealFormValues>({
     resolver: zodResolver(mealSchema),
     defaultValues: {
@@ -45,6 +52,7 @@ const AddMealForm = ({ onAddMeal }: AddMealFormProps) => {
 
   const onSubmit = async (values: MealFormValues) => {
     try {
+      setIsSubmitting(true);
       await onAddMeal({
         name: values.name,
         description: values.description || null,
@@ -57,6 +65,8 @@ const AddMealForm = ({ onAddMeal }: AddMealFormProps) => {
       form.reset();
     } catch (error) {
       console.error('Error submitting form:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -88,8 +98,12 @@ const AddMealForm = ({ onAddMeal }: AddMealFormProps) => {
                   placeholder="Enter meal description" 
                   className="resize-none" 
                   {...field} 
+                  value={field.value || ''}
                 />
               </FormControl>
+              <FormDescription>
+                Describe the meal, ingredients, and any special features
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -122,8 +136,11 @@ const AddMealForm = ({ onAddMeal }: AddMealFormProps) => {
             <FormItem>
               <FormLabel>Image URL</FormLabel>
               <FormControl>
-                <Input placeholder="Enter image URL" {...field} />
+                <Input placeholder="Enter image URL" {...field} value={field.value || ''} />
               </FormControl>
+              <FormDescription>
+                URL to an image of the meal (optional)
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -136,6 +153,9 @@ const AddMealForm = ({ onAddMeal }: AddMealFormProps) => {
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
                 <FormLabel className="text-base">Available</FormLabel>
+                <FormDescription>
+                  Toggle whether this meal is currently available
+                </FormDescription>
                 <FormMessage />
               </div>
               <FormControl>
@@ -151,9 +171,14 @@ const AddMealForm = ({ onAddMeal }: AddMealFormProps) => {
         <Button 
           type="submit" 
           className="w-full" 
-          disabled={form.formState.isSubmitting}
+          disabled={isSubmitting}
         >
-          {form.formState.isSubmitting ? 'Adding...' : 'Add Meal'}
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Adding...
+            </>
+          ) : 'Add Meal'}
         </Button>
       </form>
     </Form>
