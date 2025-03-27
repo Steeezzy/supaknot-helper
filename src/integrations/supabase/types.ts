@@ -15,7 +15,6 @@ export type Database = {
           created_at: string
           district: string | null
           email: string
-          id: number
           password: string | null
           resto_name: string | null
           state: string | null
@@ -25,7 +24,6 @@ export type Database = {
           created_at?: string
           district?: string | null
           email: string
-          id: number
           password?: string | null
           resto_name?: string | null
           state?: string | null
@@ -35,7 +33,6 @@ export type Database = {
           created_at?: string
           district?: string | null
           email?: string
-          id?: number
           password?: string | null
           resto_name?: string | null
           state?: string | null
