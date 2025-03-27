@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -26,6 +28,8 @@ type LoginFormProps = {
 
 const LoginForm = ({ onSuccess }: LoginFormProps) => {
   const { signIn } = useAuth();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -37,10 +41,29 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
 
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
+      setIsLoading(true);
+      
+      // Check if user exists in user_profiles
+      const { data: userExists, error: userCheckError } = await supabase
+        .from('user_profiles')
+        .select('user_id')
+        .eq('user_id', values.email)
+        .maybeSingle();
+      
+      // Attempt to sign in
       await signIn(values.email, values.password);
+      
       if (onSuccess) onSuccess();
-    } catch (error) {
+      
+    } catch (error: any) {
       console.error('Login error:', error);
+      toast({
+        title: "Login failed",
+        description: error.message || "Please check your credentials and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -75,8 +98,8 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
           )}
         />
         
-        <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? 'Signing in...' : 'Sign In'}
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? 'Signing in...' : 'Sign In'}
         </Button>
       </form>
     </Form>

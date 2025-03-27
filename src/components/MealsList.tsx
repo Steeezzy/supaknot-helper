@@ -8,10 +8,11 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 interface MealsListProps {
   meals: Meal[];
   onDeleteMeal: (mealId: string) => Promise<void>;
+  onEditMeal?: (meal: Meal) => void;
 }
 
-const MealsList = ({ meals, onDeleteMeal }: MealsListProps) => {
-  if (meals.length === 0) {
+const MealsList = ({ meals, onDeleteMeal, onEditMeal }: MealsListProps) => {
+  if (!meals || meals.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow p-6 text-center">
         <p className="text-gray-500">No meals added yet. Add your first meal to get started.</p>
@@ -58,7 +59,11 @@ const MealsList = ({ meals, onDeleteMeal }: MealsListProps) => {
             }`}>
               {meal.is_available ? 'Available' : 'Unavailable'}
             </span>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => onEditMeal && onEditMeal(meal)}
+            >
               <Edit className="h-4 w-4 mr-1" />
               Edit
             </Button>
