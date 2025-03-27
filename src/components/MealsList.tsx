@@ -25,7 +25,7 @@ const MealsList = ({ meals, onDeleteMeal, onEditMeal }: MealsListProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {meals.map(meal => (
-        <Card key={meal.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+        <Card key={meal.id} className="overflow-hidden hover:shadow-lg transition-shadow border border-gray-200">
           {meal.image_url ? (
             <img 
               src={meal.image_url} 
