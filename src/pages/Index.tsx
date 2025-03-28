@@ -1,137 +1,187 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
-import Header from '@/components/Header';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import AddMealForm from '@/components/AddMealForm';
-import { supabase } from '@/integrations/supabase/client';
-import { Meal } from '@/types/database.types';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client'; 
+import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
   const { toast } = useToast();
-  const [isAddMealOpen, setIsAddMealOpen] = useState(false);
+  const { user, isAdmin } = useAuth();
+  const [meals, setMeals] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleNavigateToAuth = () => {
-    navigate('/auth');
-  };
-
-  const handleAddMeal = async (mealData: Partial<Meal>) => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to add meals",
-        variant: "destructive"
-      });
-      navigate('/auth');
-      return;
-    }
-
+  useEffect(() => {
+    const fetchMeals = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('meals')
+          .select('*')
+          .order('created_at', { ascending: false });
+          
+        if (error) {
+          throw error;
+        }
+        
+        setMeals(data || []);
+      } catch (error) {
+        console.error('Error fetching meals:', error);
+        toast({
+          title: "Failed to load meals",
+          description: "Please try again later.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchMeals();
+  }, [toast]);
+  
+  const addSampleMeals = async () => {
     try {
-      // Fetch user's restaurant info first
+      // Ensure we have a restaurant ID for the logged-in admin
       const { data: restaurantData, error: restaurantError } = await supabase
         .from('restaurants')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('user_id', user?.id)
         .single();
-
+        
       if (restaurantError) {
-        throw new Error("You need to create a restaurant profile first");
+        throw new Error('Could not find your restaurant. Please set up your restaurant first.');
       }
-
-      if (!restaurantData) {
-        toast({
-          title: "Restaurant not found",
-          description: "Please set up your restaurant profile first",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Add meal with the restaurant id
-      const { data, error } = await supabase
+      
+      const sampleMeals = [
+        {
+          name: 'Vegan Breakfast Bowl',
+          description: 'Delicious vegan breakfast bowl with avocado and quinoa',
+          price: 12.99,
+          restaurant_id: restaurantData.id,
+          is_available: true,
+          extra: 'Vegan, Gluten-free'
+        },
+        {
+          name: 'Greek Yogurt Parfait',
+          description: 'Greek yogurt with fresh berries and honey',
+          price: 8.99,
+          restaurant_id: restaurantData.id,
+          is_available: true,
+          extra: 'Vegetarian'
+        }
+      ];
+      
+      const { error } = await supabase
         .from('meals')
-        .insert({
-          ...mealData,
-          restaurant_id: restaurantData.id
-        })
-        .select()
-        .single();
-
+        .insert(sampleMeals);
+        
       if (error) {
         throw error;
       }
-
+      
       toast({
-        title: "Meal added",
-        description: "Your meal has been added successfully"
+        title: "Sample meals added",
+        description: "Check your meals dashboard to see them.",
       });
-
-      setIsAddMealOpen(false);
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Error adding sample meals:', error);
       toast({
-        title: "Failed to add meal",
-        description: error.message,
-        variant: "destructive"
+        title: "Failed to add sample meals",
+        description: error.message || "Please try again later.",
+        variant: "destructive",
       });
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Header 
-        onAddClick={user ? () => setIsAddMealOpen(true) : undefined} 
-      />
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold">Meal Listings</h2>
+    <div className="min-h-screen bg-gray-50">
+      <main className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-900">Welcome to MealBuddy</h1>
+          <p className="mt-3 text-xl text-gray-600">
+            Find delicious meals from restaurants near you.
+          </p>
+          
+          <div className="mt-8 space-y-4">
+            {!user ? (
+              <div className="space-y-4">
+                <p className="text-lg">Get started by signing in or creating an account.</p>
+                <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center">
+                  <Link to="/auth">
+                    <Button size="lg">Sign In</Button>
+                  </Link>
+                  <Link to="/auth" state={{ role: 'admin' }}>
+                    <Button variant="outline" size="lg">Register as Restaurant</Button>
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-lg">Welcome back, {user.email}</p>
+                <div className="flex justify-center space-x-4">
+                  <Link to={isAdmin ? "/admin" : "/user"}>
+                    <Button size="lg">Go to Dashboard</Button>
+                  </Link>
+                  {isAdmin && (
+                    <Button 
+                      variant="outline" 
+                      size="lg"
+                      onClick={addSampleMeals}
+                    >
+                      Add Sample Meals
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-
-        <div className="mt-4">
-          {!user ? (
-            <div className="bg-white shadow rounded-lg p-6 text-center">
-              <h3 className="text-lg font-medium mb-4">Sign in to manage your restaurant</h3>
-              <Button onClick={handleNavigateToAuth}>
-                Sign In / Sign Up
-              </Button>
+        
+        {/* Show some featured meals */}
+        <div className="mt-16">
+          <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">
+            Featured Meals
+          </h2>
+          
+          {loading ? (
+            <p className="text-center">Loading meals...</p>
+          ) : meals.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {/* Meal cards would go here */}
+              {meals.slice(0, 3).map((meal) => (
+                <div key={meal.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                  {meal.image_url ? (
+                    <img 
+                      src={meal.image_url} 
+                      alt={meal.name} 
+                      className="w-full h-48 object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
+                      <span className="text-gray-500">No Image</span>
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <h3 className="text-lg font-medium">{meal.name}</h3>
+                    <p className="text-gray-600 mt-1">{meal.description}</p>
+                    <div className="mt-2 flex justify-between items-center">
+                      <span className="text-green-600 font-bold">${meal.price.toFixed(2)}</span>
+                      {meal.is_available ? (
+                        <span className="text-green-500 text-sm">Available</span>
+                      ) : (
+                        <span className="text-red-500 text-sm">Unavailable</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
-            <div className="bg-white shadow rounded-lg p-6 text-center">
-              <h3 className="text-lg font-medium mb-4">Start by adding your first meal</h3>
-              <Button onClick={() => setIsAddMealOpen(true)} className="bg-green-500 hover:bg-green-600">
-                Add Meal
-              </Button>
-            </div>
+            <p className="text-center">No meals available yet. Check back later!</p>
           )}
         </div>
       </main>
-
-      {/* Add Meal Sheet */}
-      <Sheet open={isAddMealOpen} onOpenChange={setIsAddMealOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-md overflow-auto">
-          <SheetHeader className="bg-green-500 text-white p-4 mb-4 -mx-5 -mt-5">
-            <div className="flex items-center">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => setIsAddMealOpen(false)}
-                className="mr-2 text-white hover:bg-green-600"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                </svg>
-              </Button>
-              <SheetTitle className="text-white">Add Meal</SheetTitle>
-            </div>
-          </SheetHeader>
-          <AddMealForm onAddMeal={handleAddMeal} />
-        </SheetContent>
-      </Sheet>
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -78,6 +77,7 @@ const SignupForm = ({ role, onSuccess }: SignupFormProps) => {
               state: values.state || '',
               district: values.district || '',
               city: values.city || '',
+              user_id: data.user.id // Add the user_id from auth
             });
             
           if (adminLoginError) {
@@ -90,7 +90,7 @@ const SignupForm = ({ role, onSuccess }: SignupFormProps) => {
             return;
           }
           
-          // Create the restaurant entry
+          // Create the restaurant entry - each field separately, not comma-separated
           const { error: restaurantError } = await supabase
             .from('restaurants')
             .insert({
