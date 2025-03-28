@@ -48,7 +48,7 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
         .from('admin_login')
         .select('*')
         .eq('email', values.email)
-        .single();
+        .maybeSingle();
       
       if (adminError && adminError.code !== 'PGRST116') { // PGRST116 is "No rows returned" error
         console.error('Admin check error:', adminError);
@@ -65,7 +65,7 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
           .from('user_profiles')
           .select('*')
           .eq('user_id', values.email)
-          .single();
+          .maybeSingle();
           
         if (userProfileError && userProfileError.code === 'PGRST116') {
           // No user profile found

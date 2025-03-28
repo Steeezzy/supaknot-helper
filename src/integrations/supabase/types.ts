@@ -11,31 +11,66 @@ export type Database = {
     Tables: {
       admin_login: {
         Row: {
-          city_town: string | null
+          city: string | null
           created_at: string
           district: string | null
           email: string
+          location: string | null
           password: string | null
-          resto_name: string | null
+          restaurant_name: string | null
           state: string | null
         }
         Insert: {
-          city_town?: string | null
+          city?: string | null
           created_at?: string
           district?: string | null
           email: string
+          location?: string | null
           password?: string | null
-          resto_name?: string | null
+          restaurant_name?: string | null
           state?: string | null
         }
         Update: {
-          city_town?: string | null
+          city?: string | null
           created_at?: string
           district?: string | null
           email?: string
+          location?: string | null
           password?: string | null
-          resto_name?: string | null
+          restaurant_name?: string | null
           state?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_login_location_id_fkey"
+            columns: ["location"]
+            isOneToOne: false
+            referencedRelation: "location"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      location: {
+        Row: {
+          created_at: string
+          district: string
+          id: string
+          name: string
+          state: string
+        }
+        Insert: {
+          created_at?: string
+          district: string
+          id?: string
+          name: string
+          state: string
+        }
+        Update: {
+          created_at?: string
+          district?: string
+          id?: string
+          name?: string
+          state?: string
         }
         Relationships: []
       }
@@ -43,9 +78,11 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          extra: string | null
           id: string
           image_url: string | null
           is_available: boolean
+          location_id: string | null
           name: string
           price: number
           restaurant_id: string
@@ -54,9 +91,11 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          extra?: string | null
           id?: string
           image_url?: string | null
           is_available?: boolean
+          location_id?: string | null
           name: string
           price: number
           restaurant_id: string
@@ -65,15 +104,24 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          extra?: string | null
           id?: string
           image_url?: string | null
           is_available?: boolean
+          location_id?: string | null
           name?: string
           price?: number
           restaurant_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "meals_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "location"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "meals_restaurant_id_fkey"
             columns: ["restaurant_id"]
@@ -115,6 +163,72 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_login: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string | null
+          password: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name?: string | null
+          password: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string | null
+          password?: string
+        }
+        Relationships: []
+      }
+      user_preference: {
+        Row: {
+          created_at: string
+          cuisine_preference: string | null
+          dietary_preference: string | null
+          id: string
+          preferred_location: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          cuisine_preference?: string | null
+          dietary_preference?: string | null
+          id?: string
+          preferred_location?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          cuisine_preference?: string | null
+          dietary_preference?: string | null
+          id?: string
+          preferred_location?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_preference_preferred_location_fkey"
+            columns: ["preferred_location"]
+            isOneToOne: false
+            referencedRelation: "location"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_preference_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_login"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_profiles: {
         Row: {

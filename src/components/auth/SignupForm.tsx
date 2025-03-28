@@ -55,26 +55,29 @@ const SignupForm = ({ role, onSuccess }: SignupFormProps) => {
 
   const onSubmit = async (values: z.infer<typeof signupSchema>) => {
     try {
-      await signUp(values.email, values.password, role);
+      const { error, data } = await signUp(values.email, values.password, role);
       
-      if (role === 'admin') {
-        // If the user signed up as an admin, create a restaurant entry
-        const { data: userData } = await supabase.auth.getUser();
-        
-        if (userData?.user) {
-          // Generate a random ID for the admin_login entry
-          const adminId = Math.floor(Math.random() * 1000000) + 1;
-          
-          // Create the admin_login entry with the generated ID
+      if (error) {
+        toast({
+          title: "Error creating account",
+          description: error.message,
+          variant: "destructive",
+        });
+        console.error("Signup error:", error);
+        return;
+      }
+      
+      if (role === 'admin' && data?.user) {
+        try {
+          // Insert into admin_login table with the email as the identifier
           const { error: adminLoginError } = await supabase
             .from('admin_login')
             .insert({
-              id: adminId,
               email: values.email,
               resto_name: values.restaurantName || '',
               state: values.state || '',
               district: values.district || '',
-              city_town: values.city || '',
+              city: values.city || '',
             });
             
           if (adminLoginError) {
@@ -91,7 +94,7 @@ const SignupForm = ({ role, onSuccess }: SignupFormProps) => {
           const { error: restaurantError } = await supabase
             .from('restaurants')
             .insert({
-              user_id: userData.user.id,
+              user_id: data.user.id,
               restaurant_name: values.restaurantName || '',
               state: values.state || '',
               district: values.district || '',
@@ -106,6 +109,13 @@ const SignupForm = ({ role, onSuccess }: SignupFormProps) => {
             });
             console.error("Restaurant error:", restaurantError);
           }
+        } catch (err) {
+          console.error("Error during admin registration:", err);
+          toast({
+            title: "Registration error",
+            description: "An error occurred during admin registration",
+            variant: "destructive",
+          });
         }
       }
       

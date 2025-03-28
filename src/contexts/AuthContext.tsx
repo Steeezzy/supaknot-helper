@@ -12,7 +12,10 @@ interface AuthContextType {
   isAdmin: boolean;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, role?: UserRole) => Promise<void>;
+  signUp: (email: string, password: string, role?: UserRole) => Promise<{
+    error: Error | null;
+    data: { user: User | null } | null;
+  }>;
   signOut: () => Promise<void>;
 }
 
@@ -102,7 +105,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signUp = async (email: string, password: string, role: UserRole = 'user') => {
     try {
       setIsLoading(true);
-      const { error } = await supabase.auth.signUp({ 
+      const { data, error } = await supabase.auth.signUp({ 
         email, 
         password,
         options: {
@@ -118,16 +121,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           description: error.message,
           variant: "destructive",
         });
-        throw error;
+        return { error, data: null };
       }
       
-      toast({
-        title: "Registration successful",
-        description: "Please check your email to verify your account.",
-      });
+      // Return the user data so it can be used in the onSubmit handler in SignupForm
+      return { error: null, data: { user: data.user } };
     } catch (error: any) {
       console.error('Error signing up:', error);
-      throw error;
+      return { error, data: null };
     } finally {
       setIsLoading(false);
     }
