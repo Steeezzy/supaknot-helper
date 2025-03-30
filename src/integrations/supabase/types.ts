@@ -15,113 +15,94 @@ export type Database = {
           created_at: string
           district: string | null
           email: string
-          location: string | null
           password: string | null
           restaurant_name: string | null
           state: string | null
+          user_id: string | null
         }
         Insert: {
           city?: string | null
           created_at?: string
           district?: string | null
           email: string
-          location?: string | null
           password?: string | null
           restaurant_name?: string | null
           state?: string | null
+          user_id?: string | null
         }
         Update: {
           city?: string | null
           created_at?: string
           district?: string | null
           email?: string
-          location?: string | null
           password?: string | null
           restaurant_name?: string | null
           state?: string | null
+          user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "admin_login_location_id_fkey"
-            columns: ["location"]
-            isOneToOne: false
-            referencedRelation: "location"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      location: {
+      chatbot_interactions: {
         Row: {
           created_at: string
-          district: string
           id: string
-          name: string
-          state: string
+          query: string
+          response: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
-          district: string
           id?: string
-          name: string
-          state: string
+          query: string
+          response: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
-          district?: string
           id?: string
-          name?: string
-          state?: string
+          query?: string
+          response?: string
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_interactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_login"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       meals: {
         Row: {
           created_at: string
           description: string | null
-          extra: string | null
           id: string
           image_url: string | null
-          is_available: boolean
-          location_id: string | null
           name: string
           price: number
-          restaurant_id: string
-          updated_at: string
+          restaurant_id: string | null
         }
         Insert: {
           created_at?: string
           description?: string | null
-          extra?: string | null
           id?: string
           image_url?: string | null
-          is_available?: boolean
-          location_id?: string | null
           name: string
           price: number
-          restaurant_id: string
-          updated_at?: string
+          restaurant_id?: string | null
         }
         Update: {
           created_at?: string
           description?: string | null
-          extra?: string | null
           id?: string
           image_url?: string | null
-          is_available?: boolean
-          location_id?: string | null
           name?: string
           price?: number
-          restaurant_id?: string
-          updated_at?: string
+          restaurant_id?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "meals_location_id_fkey"
-            columns: ["location_id"]
-            isOneToOne: false
-            referencedRelation: "location"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "meals_restaurant_id_fkey"
             columns: ["restaurant_id"]
@@ -133,34 +114,28 @@ export type Database = {
       }
       restaurants: {
         Row: {
-          city: string
           created_at: string
-          district: string
           id: string
-          restaurant_name: string
-          state: string
-          updated_at: string
-          user_id: string
+          image_url: string | null
+          location: string
+          name: string
+          rating: number
         }
         Insert: {
-          city: string
           created_at?: string
-          district: string
           id?: string
-          restaurant_name: string
-          state: string
-          updated_at?: string
-          user_id: string
+          image_url?: string | null
+          location: string
+          name: string
+          rating: number
         }
         Update: {
-          city?: string
           created_at?: string
-          district?: string
           id?: string
-          restaurant_name?: string
-          state?: string
-          updated_at?: string
-          user_id?: string
+          image_url?: string | null
+          location?: string
+          name?: string
+          rating?: number
         }
         Relationships: []
       }
@@ -190,37 +165,36 @@ export type Database = {
       }
       user_preference: {
         Row: {
+          allergies: string[] | null
           created_at: string
           cuisine_preference: string | null
           dietary_preference: string | null
           id: string
           preferred_location: string | null
+          price_range: unknown | null
           user_id: string
         }
         Insert: {
+          allergies?: string[] | null
           created_at?: string
           cuisine_preference?: string | null
           dietary_preference?: string | null
           id?: string
           preferred_location?: string | null
+          price_range?: unknown | null
           user_id: string
         }
         Update: {
+          allergies?: string[] | null
           created_at?: string
           cuisine_preference?: string | null
           dietary_preference?: string | null
           id?: string
           preferred_location?: string | null
+          price_range?: unknown | null
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "user_preference_preferred_location_fkey"
-            columns: ["preferred_location"]
-            isOneToOne: false
-            referencedRelation: "location"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "user_preference_user_id_fkey"
             columns: ["user_id"]

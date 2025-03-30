@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -90,7 +91,7 @@ const SignupForm = ({ role, onSuccess }: SignupFormProps) => {
             return;
           }
           
-          // Create the restaurant entry - each field separately, not comma-separated
+          // Create the restaurant entry with direct values
           const { error: restaurantError } = await supabase
             .from('restaurants')
             .insert({
