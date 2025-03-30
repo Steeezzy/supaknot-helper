@@ -18,10 +18,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 const restaurantSchema = z.object({
-  restaurant_name: z.string().min(1, { message: "Restaurant name is required" }),
-  state: z.string().min(1, { message: "State is required" }),
-  district: z.string().min(1, { message: "District is required" }),
-  city: z.string().min(1, { message: "City is required" }),
+  name: z.string().min(1, { message: "Restaurant name is required" }),
+  location: z.string().min(1, { message: "Location is required" }),
 });
 
 type RestaurantFormValues = z.infer<typeof restaurantSchema>;
@@ -37,10 +35,8 @@ const RestaurantSettings = ({ restaurant, onUpdate }: RestaurantSettingsProps) =
   const form = useForm<RestaurantFormValues>({
     resolver: zodResolver(restaurantSchema),
     defaultValues: {
-      restaurant_name: restaurant.restaurant_name,
-      state: restaurant.state,
-      district: restaurant.district,
-      city: restaurant.city,
+      name: restaurant.name,
+      location: restaurant.location,
     },
   });
 
@@ -49,10 +45,8 @@ const RestaurantSettings = ({ restaurant, onUpdate }: RestaurantSettingsProps) =
       const { data, error } = await supabase
         .from('restaurants')
         .update({
-          restaurant_name: values.restaurant_name,
-          state: values.state,
-          district: values.district,
-          city: values.city,
+          name: values.name,
+          location: values.location,
           updated_at: new Date().toISOString(),
         })
         .eq('id', restaurant.id)
@@ -79,7 +73,7 @@ const RestaurantSettings = ({ restaurant, onUpdate }: RestaurantSettingsProps) =
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-6">
         <FormField
           control={form.control}
-          name="restaurant_name"
+          name="name"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Restaurant Name</FormLabel>
@@ -93,38 +87,10 @@ const RestaurantSettings = ({ restaurant, onUpdate }: RestaurantSettingsProps) =
         
         <FormField
           control={form.control}
-          name="state"
+          name="location"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>State</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="district"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>District</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="city"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>City/Town</FormLabel>
+              <FormLabel>Location</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -117,7 +116,7 @@ const UserDashboard = () => {
                 variant={selectedRestaurant?.id === restaurant.id ? "default" : "outline"}
                 onClick={() => setSelectedRestaurant(restaurant)}
               >
-                {restaurant.restaurant_name}
+                {restaurant.name}
               </Button>
             ))}
           </div>
@@ -126,8 +125,8 @@ const UserDashboard = () => {
         {selectedRestaurant && (
           <div>
             <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-2">{selectedRestaurant.restaurant_name}</h2>
-              <p className="text-gray-600">{selectedRestaurant.city}, {selectedRestaurant.district}, {selectedRestaurant.state}</p>
+              <h2 className="text-xl font-semibold mb-2">{selectedRestaurant.name}</h2>
+              <p className="text-gray-600">{selectedRestaurant.location}</p>
             </div>
 
             <h3 className="text-lg font-semibold mb-4">Available Meals</h3>

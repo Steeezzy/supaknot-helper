@@ -23,9 +23,7 @@ const signupSchema = z.object({
   password: z.string().min(6),
   confirmPassword: z.string().min(6),
   restaurantName: z.string().min(1).optional(),
-  state: z.string().min(1).optional(),
-  district: z.string().min(1).optional(),
-  city: z.string().min(1).optional(),
+  location: z.string().min(1).optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -47,9 +45,7 @@ const SignupForm = ({ role, onSuccess }: SignupFormProps) => {
       password: '',
       confirmPassword: '',
       restaurantName: '',
-      state: '',
-      district: '',
-      city: '',
+      location: '',
     },
   });
 
@@ -74,10 +70,6 @@ const SignupForm = ({ role, onSuccess }: SignupFormProps) => {
             .from('admin_login')
             .insert({
               email: values.email,
-              resto_name: values.restaurantName || '',
-              state: values.state || '',
-              district: values.district || '',
-              city: values.city || '',
               user_id: data.user.id // Add the user_id from auth
             });
             
@@ -91,15 +83,14 @@ const SignupForm = ({ role, onSuccess }: SignupFormProps) => {
             return;
           }
           
-          // Create the restaurant entry with direct values
+          // Create the restaurant entry
           const { error: restaurantError } = await supabase
             .from('restaurants')
             .insert({
-              user_id: data.user.id,
-              restaurant_name: values.restaurantName || '',
-              state: values.state || '',
-              district: values.district || '',
-              city: values.city || '',
+              name: values.restaurantName || '',
+              location: values.location || '',
+              rating: 0, // Default rating
+              image_url: null // Default no image
             });
             
           if (restaurantError) {
@@ -194,40 +185,12 @@ const SignupForm = ({ role, onSuccess }: SignupFormProps) => {
             
             <FormField
               control={form.control}
-              name="state"
+              name="location"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>State</FormLabel>
+                  <FormLabel>Location</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter state" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="district"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>District</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter district" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="city"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>City/Town</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter city or town" {...field} />
+                    <Input placeholder="Enter location" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

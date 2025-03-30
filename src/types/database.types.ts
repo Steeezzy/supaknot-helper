@@ -3,13 +3,11 @@ export type UserRole = 'admin' | 'user' | 'manager';
 
 export interface Restaurant {
   id: string;
-  user_id: string;
-  restaurant_name: string;
-  state: string;
-  district: string;
-  city: string;
+  name: string;
+  location: string;
+  image_url: string | null;
+  rating: number;
   created_at: string;
-  updated_at: string;
 }
 
 export interface Meal {

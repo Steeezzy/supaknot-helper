@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -59,16 +58,14 @@ const Index = () => {
           description: 'Delicious vegan breakfast bowl with avocado and quinoa',
           price: 12.99,
           restaurant_id: restaurantData.id,
-          is_available: true,
-          extra: 'Vegan, Gluten-free'
+          is_available: true
         },
         {
           name: 'Greek Yogurt Parfait',
           description: 'Greek yogurt with fresh berries and honey',
           price: 8.99,
           restaurant_id: restaurantData.id,
-          is_available: true,
-          extra: 'Vegetarian'
+          is_available: true
         }
       ];
       
