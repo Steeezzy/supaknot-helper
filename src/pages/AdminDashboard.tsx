@@ -30,7 +30,7 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       
-      // Fetch restaurant data
+      // Fetch restaurant data - simplified type handling to fix infinite type instantiation
       const { data: restaurantData, error: restaurantError } = await supabase
         .from('restaurants')
         .select('*')
@@ -41,6 +41,7 @@ const AdminDashboard = () => {
         throw restaurantError;
       }
       
+      // Cast to Restaurant type instead of direct assignment
       setRestaurant(restaurantData as Restaurant);
       
       // Fetch meals data
