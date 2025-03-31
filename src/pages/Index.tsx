@@ -1,183 +1,135 @@
-import React, { useState, useEffect } from 'react';
+
+import React from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
+import { Restaurant } from '@/types/database.types';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client'; 
 import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
-  const { toast } = useToast();
   const { user, isAdmin } = useAuth();
-  const [meals, setMeals] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchMeals = async () => {
+  const { data: restaurants, isLoading } = useQuery({
+    queryKey: ['restaurants'],
+    queryFn: async () => {
       try {
         const { data, error } = await supabase
-          .from('meals')
+          .from('restaurants')
           .select('*')
           .order('created_at', { ascending: false });
-          
+        
         if (error) {
           throw error;
         }
         
-        setMeals(data || []);
-      } catch (error) {
-        console.error('Error fetching meals:', error);
+        return data as Restaurant[];
+      } catch (error: any) {
+        console.error('Error fetching restaurants:', error);
         toast({
-          title: "Failed to load meals",
-          description: "Please try again later.",
+          title: "Error loading restaurants",
+          description: error.message,
           variant: "destructive",
         });
-      } finally {
-        setLoading(false);
+        return [];
       }
-    };
-    
-    fetchMeals();
-  }, [toast]);
-  
-  const addSampleMeals = async () => {
-    try {
-      // Ensure we have a restaurant ID for the logged-in admin
-      const { data: restaurantData, error: restaurantError } = await supabase
-        .from('restaurants')
-        .select('id')
-        .eq('user_id', user?.id)
-        .single();
-        
-      if (restaurantError) {
-        throw new Error('Could not find your restaurant. Please set up your restaurant first.');
-      }
-      
-      const sampleMeals = [
-        {
-          name: 'Vegan Breakfast Bowl',
-          description: 'Delicious vegan breakfast bowl with avocado and quinoa',
-          price: 12.99,
-          restaurant_id: restaurantData.id,
-          is_available: true
-        },
-        {
-          name: 'Greek Yogurt Parfait',
-          description: 'Greek yogurt with fresh berries and honey',
-          price: 8.99,
-          restaurant_id: restaurantData.id,
-          is_available: true
-        }
-      ];
-      
-      const { error } = await supabase
-        .from('meals')
-        .insert(sampleMeals);
-        
-      if (error) {
-        throw error;
-      }
-      
-      toast({
-        title: "Sample meals added",
-        description: "Check your meals dashboard to see them.",
-      });
-    } catch (error) {
-      console.error('Error adding sample meals:', error);
-      toast({
-        title: "Failed to add sample meals",
-        description: error.message || "Please try again later.",
-        variant: "destructive",
-      });
-    }
-  };
+    },
+  });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900">Welcome to MealBuddy</h1>
-          <p className="mt-3 text-xl text-gray-600">
-            Find delicious meals from restaurants near you.
-          </p>
-          
-          <div className="mt-8 space-y-4">
-            {!user ? (
-              <div className="space-y-4">
-                <p className="text-lg">Get started by signing in or creating an account.</p>
-                <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center">
-                  <Link to="/auth">
-                    <Button size="lg">Sign In</Button>
-                  </Link>
-                  <Link to="/auth" state={{ role: 'admin' }}>
-                    <Button variant="outline" size="lg">Register as Restaurant</Button>
-                  </Link>
-                </div>
-              </div>
+    <div className="min-h-screen bg-gray-100">
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-900">FoodOrderApp</h1>
+          <div className="flex space-x-4">
+            {user ? (
+              <>
+                <Button variant="outline" asChild>
+                  <Link to={isAdmin ? "/admin" : "/user"}>Dashboard</Link>
+                </Button>
+              </>
             ) : (
-              <div className="space-y-4">
-                <p className="text-lg">Welcome back, {user.email}</p>
-                <div className="flex justify-center space-x-4">
-                  <Link to={isAdmin ? "/admin" : "/user"}>
-                    <Button size="lg">Go to Dashboard</Button>
-                  </Link>
-                  {isAdmin && (
-                    <Button 
-                      variant="outline" 
-                      size="lg"
-                      onClick={addSampleMeals}
-                    >
-                      Add Sample Meals
-                    </Button>
-                  )}
-                </div>
-              </div>
+              <>
+                <Button variant="outline" asChild>
+                  <Link to="/auth">Sign In</Link>
+                </Button>
+                <Button asChild>
+                  <Link to="/auth">Register</Link>
+                </Button>
+              </>
             )}
           </div>
         </div>
-        
-        {/* Show some featured meals */}
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">
-            Featured Meals
-          </h2>
-          
-          {loading ? (
-            <p className="text-center">Loading meals...</p>
-          ) : meals.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {/* Meal cards would go here */}
-              {meals.slice(0, 3).map((meal) => (
-                <div key={meal.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                  {meal.image_url ? (
-                    <img 
-                      src={meal.image_url} 
-                      alt={meal.name} 
-                      className="w-full h-48 object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                      <span className="text-gray-500">No Image</span>
-                    </div>
-                  )}
-                  <div className="p-4">
-                    <h3 className="text-lg font-medium">{meal.name}</h3>
-                    <p className="text-gray-600 mt-1">{meal.description}</p>
-                    <div className="mt-2 flex justify-between items-center">
-                      <span className="text-green-600 font-bold">${meal.price.toFixed(2)}</span>
-                      {meal.is_available ? (
-                        <span className="text-green-500 text-sm">Available</span>
-                      ) : (
-                        <span className="text-red-500 text-sm">Unavailable</span>
-                      )}
-                    </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        <section className="mb-10">
+          <h2 className="text-2xl font-bold mb-6">Popular Restaurants</h2>
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map(skeleton => (
+                <Card key={skeleton} className="h-[300px] animate-pulse">
+                  <div className="h-40 bg-gray-200 rounded-t-lg"></div>
+                  <CardHeader>
+                    <div className="h-5 w-3/4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-4 w-1/2 bg-gray-200 rounded"></div>
+                  </CardHeader>
+                  <CardFooter>
+                    <div className="h-9 w-full bg-gray-200 rounded"></div>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : restaurants && restaurants.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {restaurants.map(restaurant => (
+                <Card key={restaurant.id} className="overflow-hidden">
+                  <div className="h-40 bg-gray-200 relative">
+                    {restaurant.image_url && (
+                      <img 
+                        src={restaurant.image_url} 
+                        alt={restaurant.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    )}
                   </div>
-                </div>
+                  <CardHeader>
+                    <CardTitle>{restaurant.name}</CardTitle>
+                    <CardDescription>{restaurant.location}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center">
+                      <div className="flex items-center">
+                        {[...Array(5)].map((_, i) => (
+                          <svg 
+                            key={i} 
+                            className={`w-5 h-5 ${i < Math.round(restaurant.rating) ? 'text-yellow-400' : 'text-gray-300'}`} 
+                            fill="currentColor" 
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                      </div>
+                      <span className="ml-2 text-sm text-gray-600">{restaurant.rating.toFixed(1)}</span>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button className="w-full">View Menu</Button>
+                  </CardFooter>
+                </Card>
               ))}
             </div>
           ) : (
-            <p className="text-center">No meals available yet. Check back later!</p>
+            <div className="text-center py-10">
+              <h3 className="text-lg font-medium">No restaurants found</h3>
+              <p className="text-gray-500">Check back later for new additions.</p>
+            </div>
           )}
-        </div>
+        </section>
       </main>
     </div>
   );

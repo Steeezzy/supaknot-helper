@@ -55,32 +55,26 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
         // Continue to normal login flow even if admin check fails
       }
       
-      if (adminData) {
-        console.log('Admin account found:', adminData);
-        // This is an admin account
-      } else {
-        console.log('No admin account found for:', values.email);
-        // Not an admin account, checking if user exists in user_profiles
-        const { data: userProfileData, error: userProfileError } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('user_id', values.email)
-          .maybeSingle();
-          
-        if (userProfileError && userProfileError.code === 'PGRST116') {
-          // No user profile found
-          toast({
-            title: "Account not found",
-            description: "No account exists with this email. Please check your credentials or sign up.",
-            variant: "destructive",
-          });
-          setIsLoading(false);
-          return;
-        }
+      // Attempt to sign in with Supabase Auth
+      const { error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password,
+      });
+      
+      if (error) {
+        console.error('Authentication error:', error);
+        toast({
+          title: "Login failed",
+          description: error.message || "Please check your credentials and try again.",
+          variant: "destructive",
+        });
+        return;
       }
       
-      // Attempt to sign in with Supabase Auth
-      await signIn(values.email, values.password);
+      toast({
+        title: "Login successful",
+        description: "Welcome back!",
+      });
       
       if (onSuccess) onSuccess();
       

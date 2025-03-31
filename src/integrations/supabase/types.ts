@@ -15,8 +15,9 @@ export type Database = {
           created_at: string
           district: string | null
           email: string
+          location_id: string | null
           password: string | null
-          restaurant_name: string | null
+          resto_name: string | null
           state: string | null
           user_id: string | null
         }
@@ -25,8 +26,9 @@ export type Database = {
           created_at?: string
           district?: string | null
           email: string
+          location_id?: string | null
           password?: string | null
-          restaurant_name?: string | null
+          resto_name?: string | null
           state?: string | null
           user_id?: string | null
         }
@@ -35,8 +37,9 @@ export type Database = {
           created_at?: string
           district?: string | null
           email?: string
+          location_id?: string | null
           password?: string | null
-          restaurant_name?: string | null
+          resto_name?: string | null
           state?: string | null
           user_id?: string | null
         }
@@ -73,6 +76,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      location: {
+        Row: {
+          city: string | null
+          created_at: string | null
+          district: string
+          id: number
+          name: string | null
+          state: string
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string | null
+          district: string
+          id?: never
+          name?: string | null
+          state: string
+        }
+        Update: {
+          city?: string | null
+          created_at?: string | null
+          district?: string
+          id?: never
+          name?: string | null
+          state?: string
+        }
+        Relationships: []
       }
       meals: {
         Row: {
@@ -114,6 +144,7 @@ export type Database = {
       }
       restaurants: {
         Row: {
+          city: string | null
           created_at: string
           id: string
           image_url: string | null
@@ -122,6 +153,7 @@ export type Database = {
           rating: number
         }
         Insert: {
+          city?: string | null
           created_at?: string
           id?: string
           image_url?: string | null
@@ -130,6 +162,7 @@ export type Database = {
           rating: number
         }
         Update: {
+          city?: string | null
           created_at?: string
           id?: string
           image_url?: string | null
@@ -146,6 +179,7 @@ export type Database = {
           id: string
           name: string | null
           password: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -153,6 +187,7 @@ export type Database = {
           id?: string
           name?: string | null
           password: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -160,6 +195,7 @@ export type Database = {
           id?: string
           name?: string | null
           password?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -236,7 +272,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: {
+        Args: {
+          email: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       user_role: "admin" | "user"
