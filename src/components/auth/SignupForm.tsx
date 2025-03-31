@@ -15,10 +15,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { UserRole } from '@/types/database.types';
-import { supabase } from '@/integrations/supabase/client';
 
 const signupSchema = z.object({
+  name: z.string().min(1, "Name is required"),
   email: z.string().email(),
   password: z.string().min(6),
   confirmPassword: z.string().min(6),
@@ -30,7 +29,7 @@ const signupSchema = z.object({
 });
 
 type SignupFormProps = {
-  role: UserRole;
+  role: 'admin' | 'user';
   onSuccess?: () => void;
 };
 
@@ -41,6 +40,7 @@ const SignupForm = ({ role, onSuccess }: SignupFormProps) => {
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
+      name: '',
       email: '',
       password: '',
       confirmPassword: '',
@@ -51,7 +51,7 @@ const SignupForm = ({ role, onSuccess }: SignupFormProps) => {
 
   const onSubmit = async (values: z.infer<typeof signupSchema>) => {
     try {
-      const { error, data } = await signUp(values.email, values.password, role);
+      const { error, data } = await signUp(values.email, values.password, values.name, role);
       
       if (error) {
         toast({
@@ -65,41 +65,26 @@ const SignupForm = ({ role, onSuccess }: SignupFormProps) => {
       
       if (role === 'admin' && data?.user) {
         try {
-          // Insert into admin_login table with the email as the identifier
-          const { error: adminLoginError } = await supabase
-            .from('admin_login')
-            .insert({
-              email: values.email,
-              user_id: data.user.id // Add the user_id from auth
-            });
-            
-          if (adminLoginError) {
-            toast({
-              title: "Error creating admin account",
-              description: adminLoginError.message,
-              variant: "destructive",
-            });
-            console.error("Admin login error:", adminLoginError);
-            return;
-          }
-          
-          // Create the restaurant entry
-          const { error: restaurantError } = await supabase
-            .from('restaurants')
-            .insert({
-              name: values.restaurantName || '',
-              location: values.location || '',
-              rating: 0, // Default rating
-              image_url: null // Default no image
-            });
-            
-          if (restaurantError) {
-            toast({
-              title: "Error creating restaurant",
-              description: restaurantError.message,
-              variant: "destructive",
-            });
-            console.error("Restaurant error:", restaurantError);
+          // Create the restaurant entry if admin also added restaurant details
+          if (values.restaurantName && values.location) {
+            const rest_id = `rest-${Math.random().toString(36).substring(2, 10)}`;
+            const { error: restaurantError } = await supabase
+              .from('restaurants')
+              .insert({
+                name: values.restaurantName,
+                location: values.location,
+                rating: 0, // Default rating
+                rest_id
+              });
+              
+            if (restaurantError) {
+              toast({
+                title: "Error creating restaurant",
+                description: restaurantError.message,
+                variant: "destructive",
+              });
+              console.error("Restaurant error:", restaurantError);
+            }
           }
         } catch (err) {
           console.error("Error during admin registration:", err);
@@ -125,6 +110,20 @@ const SignupForm = ({ role, onSuccess }: SignupFormProps) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter your name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
         <FormField
           control={form.control}
           name="email"

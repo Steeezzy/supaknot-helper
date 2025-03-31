@@ -26,17 +26,6 @@ const MealsList = ({ meals, onDeleteMeal, onEditMeal }: MealsListProps) => {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {meals.map(meal => (
         <Card key={meal.id} className="overflow-hidden hover:shadow-lg transition-shadow border border-gray-200">
-          {meal.image_url ? (
-            <img 
-              src={meal.image_url} 
-              alt={meal.name} 
-              className="w-full h-48 object-cover"
-            />
-          ) : (
-            <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-              <Store className="h-12 w-12 text-gray-400" />
-            </div>
-          )}
           <CardHeader className="p-4 pb-0">
             <div className="flex justify-between items-start">
               <div>
@@ -54,14 +43,14 @@ const MealsList = ({ meals, onDeleteMeal, onEditMeal }: MealsListProps) => {
             </div>
           </CardHeader>
           <CardContent className="p-4 pt-2">
-            <p className="text-gray-600 text-sm line-clamp-3">{meal.description || 'No description'}</p>
+            <p className="text-gray-600 text-sm line-clamp-3">{meal.nutrient_info || 'No nutritional information'}</p>
             <p className="text-xs text-gray-400 mt-2">
               Added {formatDistanceToNow(new Date(meal.created_at), { addSuffix: true })}
             </p>
           </CardContent>
           <CardFooter className="p-4 pt-0 flex justify-between items-center">
-            <Badge variant={meal.is_available ? "success" : "destructive"} className="px-2 py-1">
-              {meal.is_available ? 'Available' : 'Unavailable'}
+            <Badge variant="success" className="px-2 py-1">
+              Available
             </Badge>
             <Button 
               variant="outline" 

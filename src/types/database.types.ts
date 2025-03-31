@@ -1,53 +1,66 @@
 
 export type UserRole = 'admin' | 'user' | 'manager';
 
-export interface Restaurant {
+export interface User {
   id: string;
   name: string;
+  email: string;
+  password: string;
+  user_id: string;
+  created_at: string;
+}
+
+export interface Admin {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  admin_id: string;
+  created_at: string;
+}
+
+export interface Restaurant {
+  id: string;
+  rest_id: string;
+  name: string;
   location: string;
-  image_url: string | null;
   rating: number;
+  admin_id: string | null;
   created_at: string;
 }
 
 export interface Meal {
   id: string;
-  restaurant_id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  image_url: string | null;
-  is_available: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface UserProfile {
-  id: string;
-  user_id: string;
-  name: string | null;
-  role: UserRole;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Order {
-  id: string;
-  user_id: string;
-  restaurant_id: string;
-  status: string;
-  total_amount: number;
-  delivery_address: string | null;
-  contact_number: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface OrderItem {
-  id: string;
-  order_id: string;
   meal_id: string;
-  quantity: number;
+  name: string;
   price: number;
+  nutrient_info: string | null;
+  restaurant_id: string;
+  created_at: string;
+}
+
+export interface Review {
+  id: string;
+  review_id: string;
+  comment: string | null;
+  rating: number;
+  user_id: string;
+  meal_id: string;
+  created_at: string;
+}
+
+export interface DietPreference {
+  id: string;
+  user_id: string;
+  preferences: string;
+  created_at: string;
+}
+
+export interface Chatbot {
+  id: string;
+  user_id: string;
+  meal_suggestion: string | null;
+  nutritional_values: string | null;
+  meal_planning: string | null;
   created_at: string;
 }

@@ -25,7 +25,7 @@ const restaurantSchema = z.object({
 type RestaurantFormValues = z.infer<typeof restaurantSchema>;
 
 interface RestaurantSettingsProps {
-  restaurant: Restaurant;
+  restaurant: Restaurant | null;
   onUpdate: (updatedRestaurant: Restaurant) => void;
 }
 
@@ -35,29 +35,37 @@ const RestaurantSettings = ({ restaurant, onUpdate }: RestaurantSettingsProps) =
   const form = useForm<RestaurantFormValues>({
     resolver: zodResolver(restaurantSchema),
     defaultValues: {
-      name: restaurant.name,
-      location: restaurant.location,
+      name: restaurant?.name || '',
+      location: restaurant?.location || '',
     },
   });
 
   const onSubmit = async (values: RestaurantFormValues) => {
     try {
-      const { data, error } = await supabase
-        .from('restaurants')
-        .update({
+      if (restaurant) {
+        // Update existing restaurant
+        const { data, error } = await supabase
+          .from('restaurants')
+          .update({
+            name: values.name,
+            location: values.location,
+          })
+          .eq('id', restaurant.id)
+          .select()
+          .single();
+          
+        if (error) {
+          throw error;
+        }
+        
+        onUpdate(data as Restaurant);
+      } else {
+        // Creating a new restaurant will be handled by the parent component
+        onUpdate({
           name: values.name,
           location: values.location,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', restaurant.id)
-        .select()
-        .single();
-        
-      if (error) {
-        throw error;
+        } as Restaurant);
       }
-      
-      onUpdate(data as Restaurant);
     } catch (error: any) {
       console.error('Error updating restaurant:', error);
       toast({
@@ -104,7 +112,9 @@ const RestaurantSettings = ({ restaurant, onUpdate }: RestaurantSettingsProps) =
           className="w-full" 
           disabled={form.formState.isSubmitting}
         >
-          {form.formState.isSubmitting ? 'Updating...' : 'Update Restaurant Info'}
+          {form.formState.isSubmitting ? 
+            (restaurant ? 'Updating...' : 'Creating...') : 
+            (restaurant ? 'Update Restaurant Info' : 'Create Restaurant')}
         </Button>
       </form>
     </Form>

@@ -9,7 +9,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { useToast } from '@/hooks/use-toast';
 
 const UserDashboard = () => {
-  const { user, signOut } = useAuth();
+  const { user, userData, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -17,10 +17,13 @@ const UserDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !userData) {
+      navigate('/auth');
+      return;
+    }
     
     fetchData();
-  }, [user]);
+  }, [user, userData, navigate]);
 
   const fetchData = async () => {
     try {
@@ -136,20 +139,11 @@ const UserDashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {meals.map(meal => (
                 <Card key={meal.id}>
-                  <div className="h-40 bg-gray-200 relative">
-                    {meal.image_url && (
-                      <img 
-                        src={meal.image_url} 
-                        alt={meal.name} 
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                  </div>
                   <CardHeader>
                     <CardTitle>{meal.name}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-gray-500 mb-2">{meal.description}</p>
+                    <p className="text-sm text-gray-500 mb-2">{meal.nutrient_info}</p>
                     <p className="font-bold">${(meal.price / 100).toFixed(2)}</p>
                   </CardContent>
                   <CardFooter>

@@ -9,126 +9,122 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      admin_login: {
+      admin: {
         Row: {
-          city: string | null
+          admin_id: string
           created_at: string
-          district: string | null
           email: string
-          location_id: string | null
-          password: string | null
-          resto_name: string | null
-          state: string | null
-          user_id: string | null
+          id: string
+          name: string
+          password: string
         }
         Insert: {
-          city?: string | null
+          admin_id: string
           created_at?: string
-          district?: string | null
           email: string
-          location_id?: string | null
-          password?: string | null
-          resto_name?: string | null
-          state?: string | null
-          user_id?: string | null
+          id?: string
+          name: string
+          password: string
         }
         Update: {
-          city?: string | null
+          admin_id?: string
           created_at?: string
-          district?: string | null
           email?: string
-          location_id?: string | null
-          password?: string | null
-          resto_name?: string | null
-          state?: string | null
-          user_id?: string | null
+          id?: string
+          name?: string
+          password?: string
         }
         Relationships: []
       }
-      chatbot_interactions: {
+      chatbot: {
         Row: {
           created_at: string
           id: string
-          query: string
-          response: string
+          meal_planning: string | null
+          meal_suggestion: string | null
+          nutritional_values: string | null
           user_id: string | null
         }
         Insert: {
           created_at?: string
           id?: string
-          query: string
-          response: string
+          meal_planning?: string | null
+          meal_suggestion?: string | null
+          nutritional_values?: string | null
           user_id?: string | null
         }
         Update: {
           created_at?: string
           id?: string
-          query?: string
-          response?: string
+          meal_planning?: string | null
+          meal_suggestion?: string | null
+          nutritional_values?: string | null
           user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "chatbot_interactions_user_id_fkey"
+            foreignKeyName: "chatbot_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "user_login"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
       }
-      location: {
+      diet_preferences: {
         Row: {
-          city: string | null
-          created_at: string | null
-          district: string
-          id: number
-          name: string | null
-          state: string
+          created_at: string
+          id: string
+          preferences: string
+          user_id: string | null
         }
         Insert: {
-          city?: string | null
-          created_at?: string | null
-          district: string
-          id?: never
-          name?: string | null
-          state: string
+          created_at?: string
+          id?: string
+          preferences: string
+          user_id?: string | null
         }
         Update: {
-          city?: string | null
-          created_at?: string | null
-          district?: string
-          id?: never
-          name?: string | null
-          state?: string
+          created_at?: string
+          id?: string
+          preferences?: string
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "diet_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       meals: {
         Row: {
           created_at: string
-          description: string | null
           id: string
-          image_url: string | null
+          meal_id: string
           name: string
+          nutrient_info: string | null
           price: number
           restaurant_id: string | null
         }
         Insert: {
           created_at?: string
-          description?: string | null
           id?: string
-          image_url?: string | null
+          meal_id: string
           name: string
+          nutrient_info?: string | null
           price: number
           restaurant_id?: string | null
         }
         Update: {
           created_at?: string
-          description?: string | null
           id?: string
-          image_url?: string | null
+          meal_id?: string
           name?: string
+          nutrient_info?: string | null
           price?: number
           restaurant_id?: string | null
         }
@@ -144,125 +140,110 @@ export type Database = {
       }
       restaurants: {
         Row: {
-          city: string | null
+          admin_id: string | null
           created_at: string
           id: string
-          image_url: string | null
           location: string
           name: string
-          rating: number
+          rating: number | null
+          rest_id: string
         }
         Insert: {
-          city?: string | null
+          admin_id?: string | null
           created_at?: string
           id?: string
-          image_url?: string | null
           location: string
           name: string
-          rating: number
+          rating?: number | null
+          rest_id: string
         }
         Update: {
-          city?: string | null
+          admin_id?: string | null
           created_at?: string
           id?: string
-          image_url?: string | null
           location?: string
           name?: string
-          rating?: number
+          rating?: number | null
+          rest_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "restaurants_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "admin"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      user_login: {
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          meal_id: string | null
+          rating: number | null
+          review_id: string
+          user_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          meal_id?: string | null
+          rating?: number | null
+          review_id: string
+          user_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          meal_id?: string | null
+          rating?: number | null
+          review_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_meal_id_fkey"
+            columns: ["meal_id"]
+            isOneToOne: false
+            referencedRelation: "meals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
         Row: {
           created_at: string
           email: string
           id: string
-          name: string | null
+          name: string
           password: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
           email: string
           id?: string
-          name?: string | null
+          name: string
           password: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
           email?: string
           id?: string
-          name?: string | null
+          name?: string
           password?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      user_preference: {
-        Row: {
-          allergies: string[] | null
-          created_at: string
-          cuisine_preference: string | null
-          dietary_preference: string | null
-          id: string
-          preferred_location: string | null
-          price_range: unknown | null
-          user_id: string
-        }
-        Insert: {
-          allergies?: string[] | null
-          created_at?: string
-          cuisine_preference?: string | null
-          dietary_preference?: string | null
-          id?: string
-          preferred_location?: string | null
-          price_range?: unknown | null
-          user_id: string
-        }
-        Update: {
-          allergies?: string[] | null
-          created_at?: string
-          cuisine_preference?: string | null
-          dietary_preference?: string | null
-          id?: string
-          preferred_location?: string | null
-          price_range?: unknown | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_preference_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_login"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_profiles: {
-        Row: {
-          created_at: string
-          id: string
-          name: string | null
-          role: Database["public"]["Enums"]["user_role"]
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
-          updated_at?: string
           user_id?: string
         }
         Relationships: []

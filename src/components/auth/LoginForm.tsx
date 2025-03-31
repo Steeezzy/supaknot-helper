@@ -43,16 +43,22 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
     try {
       setIsLoading(true);
       
-      // First check if this is an admin by looking in admin_login table
+      // Check if user exists in either admin or users table
       const { data: adminData, error: adminError } = await supabase
-        .from('admin_login')
+        .from('admin')
         .select('*')
         .eq('email', values.email)
         .maybeSingle();
       
-      if (adminError && adminError.code !== 'PGRST116') { // PGRST116 is "No rows returned" error
-        console.error('Admin check error:', adminError);
-        // Continue to normal login flow even if admin check fails
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', values.email)
+        .maybeSingle();
+      
+      if (adminError && adminError.code !== 'PGRST116' && userError && userError.code !== 'PGRST116') {
+        // Both queries failed with errors other than "no rows returned"
+        console.error('Database check errors:', { adminError, userError });
       }
       
       // Attempt to sign in with Supabase Auth

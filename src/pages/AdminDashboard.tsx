@@ -13,7 +13,7 @@ import RestaurantSettings from '@/components/RestaurantSettings';
 import MealsList from '@/components/MealsList';
 
 const AdminDashboard = () => {
-  const { user, signOut } = useAuth();
+  const { user, adminData, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
@@ -21,31 +21,34 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !adminData) {
+      navigate('/auth');
+      return;
+    }
     
     fetchRestaurantData();
-  }, [user]);
+  }, [user, adminData, navigate]);
 
   const fetchRestaurantData = async () => {
     try {
       setLoading(true);
       
-      // Fetch restaurant data - simplified type handling to fix infinite type instantiation
+      // Fetch restaurant data
       const { data: restaurantData, error: restaurantError } = await supabase
         .from('restaurants')
         .select('*')
-        .eq('user_id', user?.id)
-        .single();
+        .eq('admin_id', adminData?.id)
+        .maybeSingle();
         
-      if (restaurantError) {
+      if (restaurantError && restaurantError.code !== 'PGRST116') {
         throw restaurantError;
       }
       
-      // Cast to Restaurant type instead of direct assignment
-      setRestaurant(restaurantData as Restaurant);
-      
-      // Fetch meals data
+      // Cast to Restaurant type
       if (restaurantData) {
+        setRestaurant(restaurantData as Restaurant);
+        
+        // Fetch meals data
         const { data: mealsData, error: mealsError } = await supabase
           .from('meals')
           .select('*')
@@ -56,6 +59,10 @@ const AdminDashboard = () => {
         }
         
         setMeals(mealsData as Meal[]);
+      } else {
+        // No restaurant found for this admin
+        setRestaurant(null);
+        setMeals([]);
       }
     } catch (error: any) {
       console.error('Error fetching data:', error);
@@ -70,23 +77,27 @@ const AdminDashboard = () => {
   };
 
   const handleAddMeal = async (newMeal: Partial<Meal>) => {
-    if (!restaurant) return;
+    if (!restaurant) {
+      toast({
+        title: "Error",
+        description: "You need to create a restaurant first",
+        variant: "destructive",
+      });
+      return;
+    }
     
     try {
-      // Ensure required fields are present and have the correct types
-      if (!newMeal.name || typeof newMeal.price !== 'number') {
-        throw new Error('Meal name and price are required');
-      }
+      // Generate a unique meal_id
+      const meal_id = `meal-${Math.random().toString(36).substring(2, 10)}`;
       
       const { data, error } = await supabase
         .from('meals')
         .insert({
-          name: newMeal.name,
-          price: newMeal.price,
+          name: newMeal.name!,
+          price: newMeal.price!,
           restaurant_id: restaurant.id,
-          description: newMeal.description || null,
-          image_url: newMeal.image_url || null,
-          is_available: newMeal.is_available !== undefined ? newMeal.is_available : true
+          meal_id,
+          nutrient_info: newMeal.description || null
         })
         .select()
         .single();
@@ -136,6 +147,42 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleCreateRestaurant = async (restaurantData: Partial<Restaurant>) => {
+    try {
+      // Generate a unique rest_id
+      const rest_id = `rest-${Math.random().toString(36).substring(2, 10)}`;
+      
+      const { data, error } = await supabase
+        .from('restaurants')
+        .insert({
+          name: restaurantData.name!,
+          location: restaurantData.location!,
+          rating: 0,
+          admin_id: adminData?.id,
+          rest_id
+        })
+        .select()
+        .single();
+        
+      if (error) {
+        throw error;
+      }
+      
+      setRestaurant(data as Restaurant);
+      toast({
+        title: "Restaurant created",
+        description: "Your restaurant has been created successfully.",
+      });
+    } catch (error: any) {
+      console.error('Error creating restaurant:', error);
+      toast({
+        title: "Failed to create restaurant",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -151,6 +198,32 @@ const AdminDashboard = () => {
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Loading...</h1>
         </div>
+      </div>
+    );
+  }
+
+  // If admin doesn't have a restaurant yet, show restaurant creation form
+  if (!restaurant) {
+    return (
+      <div className="min-h-screen bg-gray-100">
+        <header className="bg-white shadow">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+            <Button variant="outline" onClick={handleSignOut}>Sign Out</Button>
+          </div>
+        </header>
+
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-xl font-semibold mb-4">Create Your Restaurant</h2>
+            <p className="mb-4 text-gray-600">You need to create a restaurant before you can add meals.</p>
+            
+            <RestaurantSettings 
+              restaurant={null} 
+              onUpdate={(newRestaurant) => handleCreateRestaurant(newRestaurant)}
+            />
+          </div>
+        </main>
       </div>
     );
   }

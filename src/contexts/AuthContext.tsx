@@ -1,20 +1,21 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Session, User } from '@supabase/supabase-js';
+import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { UserProfile, UserRole } from '@/types/database.types';
+import { UserRole, User, Admin } from '@/types/database.types';
 
 interface AuthContextType {
   session: Session | null;
-  user: User | null;
-  userProfile: UserProfile | null;
+  user: SupabaseUser | null;
+  userData: User | null;
+  adminData: Admin | null;
   isAdmin: boolean;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, role?: UserRole) => Promise<{
+  signUp: (email: string, password: string, name: string, role?: 'admin' | 'user') => Promise<{
     error: Error | null;
-    data: { user: User | null } | null;
+    data: { user: SupabaseUser | null } | null;
   }>;
   signOut: () => Promise<void>;
 }
@@ -23,8 +24,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [userData, setUserData] = useState<User | null>(null);
+  const [adminData, setAdminData] = useState<Admin | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -36,9 +38,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          await fetchUserProfile(session.user.id);
+          await fetchUserData(session.user.email);
         } else {
-          setUserProfile(null);
+          setUserData(null);
+          setAdminData(null);
         }
       }
     );
@@ -49,7 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        fetchUserProfile(session.user.id);
+        fetchUserData(session.user.email);
       }
       setIsLoading(false);
     });
@@ -57,22 +60,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserData = async (email: string | undefined) => {
+    if (!email) return;
+    
     try {
-      const { data, error } = await supabase
-        .from('user_profiles')
+      // Check if the user is an admin
+      const { data: adminData, error: adminError } = await supabase
+        .from('admin')
         .select('*')
-        .eq('user_id', userId)
-        .single();
+        .eq('email', email)
+        .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching user profile:', error);
+      if (adminError && adminError.code !== 'PGRST116') {
+        console.error('Error fetching admin data:', adminError);
+      }
+
+      if (adminData) {
+        setAdminData(adminData as Admin);
+        setUserData(null);
         return;
       }
 
-      setUserProfile(data as UserProfile);
+      // If not an admin, check if they're a regular user
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (userError) {
+        console.error('Error fetching user data:', userError);
+        return;
+      }
+
+      setUserData(userData as User);
+      setAdminData(null);
     } catch (error) {
-      console.error('Error in fetchUserProfile:', error);
+      console.error('Error in fetchUserData:', error);
     }
   };
 
@@ -102,7 +126,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, role: UserRole = 'user') => {
+  const signUp = async (email: string, password: string, name: string, role: 'admin' | 'user' = 'user') => {
     try {
       setIsLoading(true);
       const { data, error } = await supabase.auth.signUp({ 
@@ -110,6 +134,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         password,
         options: {
           data: {
+            name,
             role
           }
         }
@@ -122,6 +147,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           variant: "destructive",
         });
         return { error, data: null };
+      }
+      
+      if (data.user) {
+        if (role === 'admin') {
+          // Create admin record
+          const admin_id = `admin-${Math.random().toString(36).substring(2, 10)}`;
+          const { error: adminError } = await supabase
+            .from('admin')
+            .insert({
+              email,
+              name,
+              password: 'hashed-password', // In a real app, don't store passwords directly
+              admin_id
+            });
+            
+          if (adminError) {
+            console.error('Error creating admin record:', adminError);
+          }
+        } else {
+          // Create user record
+          const user_id = `user-${Math.random().toString(36).substring(2, 10)}`;
+          const { error: userError } = await supabase
+            .from('users')
+            .insert({
+              email,
+              name,
+              password: 'hashed-password', // In a real app, don't store passwords directly
+              user_id
+            });
+            
+          if (userError) {
+            console.error('Error creating user record:', userError);
+          }
+        }
       }
       
       // Return the user data so it can be used in the onSubmit handler in SignupForm
@@ -160,13 +219,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const isAdmin = userProfile?.role === 'admin';
+  const isAdmin = !!adminData;
 
   return (
     <AuthContext.Provider value={{ 
       session, 
       user, 
-      userProfile,
+      userData,
+      adminData,
       isAdmin,
       isLoading, 
       signIn, 
