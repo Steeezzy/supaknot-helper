@@ -15,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const signupSchema = z.object({
   name: z.string().min(1, "Name is required"),

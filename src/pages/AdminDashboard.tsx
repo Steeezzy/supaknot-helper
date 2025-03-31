@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -97,7 +96,7 @@ const AdminDashboard = () => {
           price: newMeal.price!,
           restaurant_id: restaurant.id,
           meal_id,
-          nutrient_info: newMeal.description || null
+          nutrient_info: newMeal.nutrient_info || null
         })
         .select()
         .single();

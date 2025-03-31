@@ -15,7 +15,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const locationState = location.state as LocationState || {};
-  const [role] = useState<UserRole>(locationState.role || 'user');
+  const [role] = useState<'admin' | 'user'>(locationState.role as 'admin' | 'user' || 'user');
   const [isLogin, setIsLogin] = useState(true);
   const { user } = useAuth();
 

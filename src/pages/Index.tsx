@@ -88,13 +88,7 @@ const Index = () => {
               {restaurants.map(restaurant => (
                 <Card key={restaurant.id} className="overflow-hidden">
                   <div className="h-40 bg-gray-200 relative">
-                    {restaurant.image_url && (
-                      <img 
-                        src={restaurant.image_url} 
-                        alt={restaurant.name} 
-                        className="w-full h-full object-cover"
-                      />
-                    )}
+                    {/* Restaurant image placeholder */}
                   </div>
                   <CardHeader>
                     <CardTitle>{restaurant.name}</CardTitle>
