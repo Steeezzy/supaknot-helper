@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Restaurant, Meal } from '@/types/database.types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import MealsList from '@/components/MealsList';
 
 const UserDashboard = () => {
   const { user, userData, signOut } = useAuth();
@@ -41,7 +42,8 @@ const UserDashboard = () => {
       
       setRestaurants(restaurantsData as Restaurant[]);
       
-      // Fetch meals data
+      // Fetch meals data - use maybeSingle() instead of single() to avoid PGRST116 error
+      // or don't use single() at all if you expect multiple rows
       const { data: mealsData, error: mealsError } = await supabase
         .from('meals')
         .select('*')
@@ -51,7 +53,7 @@ const UserDashboard = () => {
         throw mealsError;
       }
       
-      setMeals(mealsData as Meal[]);
+      setMeals(mealsData || []); // Ensure we always set an array, even if data is null
     } catch (error: any) {
       console.error('Error fetching data:', error);
       toast({
@@ -59,8 +61,37 @@ const UserDashboard = () => {
         description: error.message,
         variant: "destructive",
       });
+      // Set empty arrays to prevent undefined errors
+      setRestaurants([]);
+      setMeals([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteMeal = async (mealId: string) => {
+    try {
+      const { error } = await supabase
+        .from('meals')
+        .delete()
+        .eq('id', mealId);
+      
+      if (error) throw error;
+      
+      // Update local state after successful deletion
+      setMeals(prevMeals => prevMeals.filter(meal => meal.id !== mealId));
+      
+      toast({
+        title: "Meal deleted",
+        description: "The meal has been successfully deleted.",
+      });
+    } catch (error: any) {
+      console.error('Error deleting meal:', error);
+      toast({
+        title: "Error deleting meal",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -134,29 +165,11 @@ const UserDashboard = () => {
         </section>
         
         <section>
-          <h2 className="text-xl font-semibold mb-6">Featured Meals</h2>
-          {meals.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {meals.map(meal => (
-                <Card key={meal.id}>
-                  <CardHeader>
-                    <CardTitle>{meal.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-500 mb-2">{meal.nutrient_info}</p>
-                    <p className="font-bold">${(meal.price / 100).toFixed(2)}</p>
-                  </CardContent>
-                  <CardFooter>
-                    <Button className="w-full">Order Now</Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-10">
-              <p className="text-gray-500">No meals available at the moment.</p>
-            </div>
-          )}
+          <h2 className="text-xl font-semibold mb-6">Meals</h2>
+          <MealsList 
+            meals={meals} 
+            onDeleteMeal={handleDeleteMeal} 
+          />
         </section>
       </main>
     </div>

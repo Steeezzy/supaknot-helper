@@ -14,6 +14,7 @@ interface MealsListProps {
 }
 
 const MealsList = ({ meals, onDeleteMeal, onEditMeal }: MealsListProps) => {
+  // Safe check for empty meals array - handle both null/undefined and empty array
   if (!meals || meals.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow p-6 text-center">
