@@ -33,6 +33,42 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_login: {
+        Row: {
+          city: string
+          created_at: string | null
+          district: string
+          email: string
+          id: string
+          location: string | null
+          password: string
+          restaurant_name: string
+          state: string
+        }
+        Insert: {
+          city: string
+          created_at?: string | null
+          district: string
+          email: string
+          id?: string
+          location?: string | null
+          password: string
+          restaurant_name: string
+          state: string
+        }
+        Update: {
+          city?: string
+          created_at?: string | null
+          district?: string
+          email?: string
+          id?: string
+          location?: string | null
+          password?: string
+          restaurant_name?: string
+          state?: string
+        }
+        Relationships: []
+      }
       chatbot: {
         Row: {
           created_at: string
@@ -136,6 +172,7 @@ export type Database = {
           name: string
           rating: number | null
           rest_id: string
+          user_id: string | null
         }
         Insert: {
           admin_id?: string | null
@@ -145,6 +182,7 @@ export type Database = {
           name: string
           rating?: number | null
           rest_id: string
+          user_id?: string | null
         }
         Update: {
           admin_id?: string | null
@@ -154,6 +192,7 @@ export type Database = {
           name?: string
           rating?: number | null
           rest_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -201,6 +240,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_profiles: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          role: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          role: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          role?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       users: {
         Row: {
@@ -277,7 +340,7 @@ export type Database = {
       }
       get_restaurant_meals: {
         Args: {
-          restaurant_id: string
+          rest_id: string
         }
         Returns: {
           created_at: string

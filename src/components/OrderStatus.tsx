@@ -12,6 +12,17 @@ interface OrderStatusProps {
   className?: string;
 }
 
+// Define the type for the dashboard item from the view
+interface DashboardItem {
+  category: string;
+  item_id: string;
+  item_name: string;
+  item_location: string | null;
+  item_price: number | null;
+  item_rating: number | null;
+  item_user_id: string | null;
+}
+
 const OrderStatus = ({ className }: OrderStatusProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -20,6 +31,7 @@ const OrderStatus = ({ className }: OrderStatusProps) => {
     queryKey: ['user-dashboard-view'],
     queryFn: async () => {
       try {
+        // Using the 'from' and specify the view name as a string
         const { data, error } = await supabase
           .from('user_dashboard_view')
           .select('*')
@@ -29,7 +41,7 @@ const OrderStatus = ({ className }: OrderStatusProps) => {
           throw error;
         }
 
-        return data;
+        return data as DashboardItem[];
       } catch (error: any) {
         console.error('Error fetching dashboard data:', error);
         toast({
@@ -37,7 +49,7 @@ const OrderStatus = ({ className }: OrderStatusProps) => {
           description: error.message,
           variant: "destructive",
         });
-        return [];
+        return [] as DashboardItem[];
       }
     },
     enabled: !!user,
@@ -117,7 +129,7 @@ const OrderStatus = ({ className }: OrderStatusProps) => {
                     </div>
                     <div className="text-right">
                       <Badge variant="secondary">{item.item_rating?.toFixed(1)} ★</Badge>
-                      <p className="text-sm font-medium text-green-600">${(item.item_price / 100).toFixed(2)}</p>
+                      <p className="text-sm font-medium text-green-600">${(item.item_price || 0) / 100}</p>
                     </div>
                   </li>
                 ))}
