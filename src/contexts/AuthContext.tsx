@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -151,14 +150,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (data.user) {
         if (role === 'admin') {
-          // Create admin record
+          // Create admin record - without password field
           const admin_id = `admin-${Math.random().toString(36).substring(2, 10)}`;
           const { error: adminError } = await supabase
             .from('admin')
             .insert({
               email,
               name,
-              password: 'hashed-password', // In a real app, don't store passwords directly
               admin_id
             });
             
