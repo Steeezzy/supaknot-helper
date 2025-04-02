@@ -12,27 +12,24 @@ export type Database = {
       admin: {
         Row: {
           admin_id: string
-          created_at: string
+          created_at: string | null
           email: string
           id: string
           name: string
-          password: string
         }
         Insert: {
           admin_id: string
-          created_at?: string
+          created_at?: string | null
           email: string
-          id?: string
+          id: string
           name: string
-          password: string
         }
         Update: {
           admin_id?: string
-          created_at?: string
+          created_at?: string | null
           email?: string
           id?: string
           name?: string
-          password?: string
         }
         Relationships: []
       }
@@ -128,20 +125,12 @@ export type Database = {
           price?: number
           restaurant_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "meals_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurants"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       restaurants: {
         Row: {
           admin_id: string | null
-          created_at: string
+          created_at: string | null
           id: string
           location: string
           name: string
@@ -150,7 +139,7 @@ export type Database = {
         }
         Insert: {
           admin_id?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
           location: string
           name: string
@@ -159,22 +148,14 @@ export type Database = {
         }
         Update: {
           admin_id?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
           location?: string
           name?: string
           rating?: number | null
           rest_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "restaurants_admin_id_fkey"
-            columns: ["admin_id"]
-            isOneToOne: false
-            referencedRelation: "admin"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       reviews: {
         Row: {
@@ -227,7 +208,7 @@ export type Database = {
           email: string
           id: string
           name: string
-          password: string
+          password: string | null
           user_id: string
         }
         Insert: {
@@ -235,7 +216,7 @@ export type Database = {
           email: string
           id?: string
           name: string
-          password: string
+          password?: string | null
           user_id: string
         }
         Update: {
@@ -243,16 +224,71 @@ export type Database = {
           email?: string
           id?: string
           name?: string
-          password?: string
+          password?: string | null
           user_id?: string
         }
         Relationships: []
       }
     }
     Views: {
-      [_ in never]: never
+      policies: {
+        Row: {
+          definition: string | null
+          operation: string | null
+          policy_name: unknown | null
+          roles: unknown[] | null
+          table_name: unknown | null
+          table_schema: unknown | null
+          with_check: string | null
+        }
+        Relationships: []
+      }
+      user_dashboard_view: {
+        Row: {
+          category: string | null
+          item_id: string | null
+          item_location: string | null
+          item_name: string | null
+          item_price: number | null
+          item_rating: number | null
+          item_user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      get_filtered_meals: {
+        Args: {
+          max_price: number
+          cuisine_type: string
+          location: string
+        }
+        Returns: {
+          id: string
+          meal_id: string
+          name: string
+          price: number
+          nutrient_info: string
+          restaurant_id: string
+          restaurant_name: string
+          restaurant_location: string
+          created_at: string
+        }[]
+      }
+      get_restaurant_meals: {
+        Args: {
+          restaurant_id: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          meal_id: string
+          name: string
+          nutrient_info: string | null
+          price: number
+          restaurant_id: string | null
+        }[]
+      }
       is_admin: {
         Args: {
           email: string

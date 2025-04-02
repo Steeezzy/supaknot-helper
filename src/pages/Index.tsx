@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Restaurant } from '@/types/database.types';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import OrderStatus from '@/components/OrderStatus';
 
 const Index = () => {
   const { user, isAdmin } = useAuth();
@@ -66,6 +67,12 @@ const Index = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        {user && (
+          <section className="mb-8">
+            <OrderStatus className="w-full" />
+          </section>
+        )}
+        
         <section className="mb-10">
           <h2 className="text-2xl font-bold mb-6">Popular Restaurants</h2>
           {isLoading ? (
