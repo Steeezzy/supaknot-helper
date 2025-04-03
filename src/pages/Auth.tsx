@@ -15,16 +15,32 @@ const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const locationState = location.state as LocationState || {};
-  const [role] = useState<'admin' | 'user'>(locationState.role as 'admin' | 'user' || 'user');
+  const searchParams = new URLSearchParams(location.search);
+  const roleParam = searchParams.get('role') as 'admin' | 'user' | null;
+  
+  const [role] = useState<'admin' | 'user'>(
+    roleParam || 
+    (locationState.role as 'admin' | 'user') || 
+    'user'
+  );
+  
   const [isLogin, setIsLogin] = useState(true);
-  const { user } = useAuth();
+  const { user, adminData, userData } = useAuth();
 
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      navigate(role === 'admin' ? '/admin' : '/user');
+      if (role === 'admin' && adminData) {
+        navigate('/admin');
+      } else if (role === 'user' && userData) {
+        navigate('/user');
+      } else if (adminData) {
+        navigate('/admin');
+      } else if (userData) {
+        navigate('/user');
+      }
     }
-  }, [user, navigate, role]);
+  }, [user, navigate, role, adminData, userData]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">

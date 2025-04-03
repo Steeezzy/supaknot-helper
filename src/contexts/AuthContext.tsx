@@ -88,7 +88,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .eq('email', email)
         .maybeSingle();
 
-      if (userError) {
+      if (userError && userError.code !== 'PGRST116') {
         console.error('Error fetching user data:', userError);
         return;
       }
@@ -151,12 +151,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (data.user) {
         if (role === 'admin') {
-          // Create admin record with required id field
+          // Create admin record including id
           const admin_id = `admin-${Math.random().toString(36).substring(2, 10)}`;
           const { error: adminError } = await supabase
             .from('admin')
             .insert({
-              id: data.user.id, // Add the required id field
+              id: data.user.id,
               email,
               name,
               admin_id
@@ -164,6 +164,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             
           if (adminError) {
             console.error('Error creating admin record:', adminError);
+            toast({
+              title: "Error creating admin account",
+              description: adminError.message,
+              variant: "destructive",
+            });
           }
         } else {
           // Create user record
@@ -171,14 +176,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const { error: userError } = await supabase
             .from('users')
             .insert({
+              id: data.user.id,
               email,
               name,
-              password: 'hashed-password', // In a real app, don't store passwords directly
               user_id
             });
             
           if (userError) {
             console.error('Error creating user record:', userError);
+            toast({
+              title: "Error creating user account",
+              description: userError.message,
+              variant: "destructive",
+            });
           }
         }
       }

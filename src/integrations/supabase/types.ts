@@ -136,6 +136,7 @@ export type Database = {
       meals: {
         Row: {
           created_at: string
+          description: string | null
           id: string
           meal_id: string
           name: string
@@ -145,6 +146,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          description?: string | null
           id?: string
           meal_id: string
           name: string
@@ -154,6 +156,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          description?: string | null
           id?: string
           meal_id?: string
           name?: string
@@ -344,6 +347,7 @@ export type Database = {
         }
         Returns: {
           created_at: string
+          description: string | null
           id: string
           meal_id: string
           name: string
