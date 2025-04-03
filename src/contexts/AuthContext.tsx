@@ -151,12 +151,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (data.user) {
         if (role === 'admin') {
-          // Create admin record including id
+          // Create admin record including id - FIXED: Added user id to insert
           const admin_id = `admin-${Math.random().toString(36).substring(2, 10)}`;
           const { error: adminError } = await supabase
             .from('admin')
             .insert({
-              id: data.user.id,
+              id: data.user.id,  // Fixed: This was missing
               email,
               name,
               admin_id

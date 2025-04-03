@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -27,7 +26,7 @@ const OrderStatus = ({ className }: OrderStatusProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const { data: dashboardData, isLoading } = useQuery({
+  const { data: dashboardData, isLoading, error } = useQuery({
     queryKey: ['user-dashboard-view'],
     queryFn: async () => {
       try {
@@ -38,10 +37,12 @@ const OrderStatus = ({ className }: OrderStatusProps) => {
           .limit(10);
 
         if (error) {
+          console.error('Error fetching dashboard data:', error);
           throw error;
         }
 
-        return data as DashboardItem[];
+        // Return empty array if no data instead of null
+        return data || [] as DashboardItem[];
       } catch (error: any) {
         console.error('Error fetching dashboard data:', error);
         toast({
@@ -71,6 +72,19 @@ const OrderStatus = ({ className }: OrderStatusProps) => {
               <div key={i} className="h-12 bg-gray-100 animate-pulse rounded"></div>
             ))}
           </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className={className}>
+        <CardHeader>
+          <CardTitle>Latest Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-center text-red-500 py-4">Error loading data. Please try again later.</p>
         </CardContent>
       </Card>
     );
@@ -110,7 +124,7 @@ const OrderStatus = ({ className }: OrderStatusProps) => {
                       <p className="font-medium">{item.item_name}</p>
                       <p className="text-sm text-gray-500">{item.item_location}</p>
                     </div>
-                    <Badge variant="secondary">{item.item_rating?.toFixed(1)} ★</Badge>
+                    <Badge variant="secondary">{item.item_rating?.toFixed(1) || "N/A"} ★</Badge>
                   </li>
                 ))}
               </ul>
@@ -128,8 +142,8 @@ const OrderStatus = ({ className }: OrderStatusProps) => {
                       <p className="text-sm text-gray-500">{item.item_location}</p>
                     </div>
                     <div className="text-right">
-                      <Badge variant="secondary">{item.item_rating?.toFixed(1)} ★</Badge>
-                      <p className="text-sm font-medium text-green-600">${(item.item_price || 0) / 100}</p>
+                      <Badge variant="secondary">{item.item_rating?.toFixed(1) || "N/A"} ★</Badge>
+                      <p className="text-sm font-medium text-green-600">${((item.item_price || 0) / 100).toFixed(2)}</p>
                     </div>
                   </li>
                 ))}
@@ -144,7 +158,7 @@ const OrderStatus = ({ className }: OrderStatusProps) => {
                 {recentReviews.slice(0, 3).map(item => (
                   <li key={item.item_id} className="p-2 bg-gray-50 rounded flex justify-between items-center">
                     <p className="font-medium">{item.item_name}</p>
-                    <Badge variant="secondary">{item.item_rating?.toFixed(1)} ★</Badge>
+                    <Badge variant="secondary">{item.item_rating?.toFixed(1) || "N/A"} ★</Badge>
                   </li>
                 ))}
               </ul>

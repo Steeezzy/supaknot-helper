@@ -33,7 +33,8 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const location = useLocation();
-  const isAdminPage = location.pathname.includes('admin') || new URLSearchParams(location.search).get('role') === 'admin';
+  const searchParams = new URLSearchParams(location.search);
+  const isAdminPage = location.pathname.includes('admin') || searchParams.get('role') === 'admin';
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),

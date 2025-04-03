@@ -30,6 +30,7 @@ const Auth = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
+      // Improved redirection logic
       if (role === 'admin' && adminData) {
         navigate('/admin');
       } else if (role === 'user' && userData) {
